@@ -15,10 +15,20 @@ if [ ! -f "./git-cm-lite.sh" ]; then
   exit 1
 fi
 
-# Make the script executable
-chmod +x ./git-cm-lite.sh
+# Detect OS for cross-platform compatibility
+case "$(uname -s)" in
+  Linux*|Darwin*|CYGWIN*|MINGW*|MSYS*)
+    # Make the script executable on Unix-like systems
+    chmod +x ./git-cm-lite.sh
+    echo "Made script executable for Unix-like environment"
+    ;;
+  *)
+    # On Windows/PowerShell we don't need chmod
+    echo "Windows environment detected, skipping chmod"
+    ;;
+esac
 
-# Set up the Git alias
+# Set up the Git alias - using sh explicitly for cross-platform compatibility
 git config --local alias.cm '!sh ./git-cm-lite.sh'
 
 echo "Git alias 'cm' has been set up successfully!"
@@ -27,3 +37,14 @@ echo ""
 echo "To use globally (not just in this repository), run:"
 echo "git config --global alias.cm '!sh /path/to/git-cm-lite.sh'"
 echo "But remember, the script must be accessible from that path on your system."
+
+# Additional note for Windows users
+case "$(uname -s)" in
+  MINGW*|MSYS*)
+    echo ""
+    echo "NOTE FOR WINDOWS USERS:"
+    echo "When using in Visual Studio with PowerShell, you might need to use:"
+    echo "git config --local alias.cm '!sh \"$PWD/git-cm-lite.sh\"'"
+    echo "to ensure the script path is properly escaped."
+    ;;
+esac
