@@ -1,6 +1,84 @@
-Here’s a **clean, ready-to-go** `README.md` for your **Commitizen-like CLI** tool in a Git repository, using the `git-cm-lite.sh` script.
+# Git Commitizen Lite
 
----
+A lightweight, dependency-free implementation of Commitizen-like interactive commit flow using only Bash/Shell script.
+
+## Features
+
+- Interactive conventional commit message creation
+- No external dependencies, works with built-in Git and shell tools
+- Cross-platform (Windows, macOS, Linux)
+- Supports conventional commit format with:
+  - Type selection (feat, fix, docs, etc.)
+  - Optional scope
+  - Required summary
+  - Optional multiline description
+  - Breaking change handling
+  - Issue references
+
+## Setup
+
+### Unix/Linux/Git Bash
+
+1. Run the setup script:
+   ```
+   sh .git-cm-setup.sh
+   ```
+
+2. The script will:
+   - Make `git-cm-lite.sh` executable
+   - Set up a Git alias `cm` for the current repository
+
+### Windows/PowerShell (Visual Studio)
+
+1. Run the PowerShell setup script:
+   ```powershell
+   .\powershell-setup.ps1
+   ```
+
+2. The script will:
+   - Set up a Git alias `cm` with proper path escaping for Windows
+   - Configure it to work in the Visual Studio Developer PowerShell
+
+## Usage
+
+After setup, simply run:
+
+```
+git cm
+```
+
+Follow the interactive prompts to create a properly formatted commit message.
+
+## Manual Setup
+
+If you prefer to set up the alias manually:
+
+### Git Bash / Linux / macOS
+```
+chmod +x git-cm-lite.sh
+git config --local alias.cm '!sh ./git-cm-lite.sh'
+```
+
+### Windows PowerShell
+```powershell
+git config --local alias.cm "!sh \"$PWD/git-cm-lite.sh\""
+```
+
+## Global Setup
+
+To use this tool globally across all repositories, use:
+
+### Git Bash / Linux / macOS
+```
+git config --global alias.cm '!sh /path/to/git-cm-lite.sh'
+```
+
+### Windows PowerShell
+```powershell
+git config --global alias.cm "!sh \"C:/path/to/git-cm-lite.sh\""
+```
+
+Make sure the script remains accessible at the specified path.
 
 ## 📚 README: Commitizen Lite for Git via Bash
 
