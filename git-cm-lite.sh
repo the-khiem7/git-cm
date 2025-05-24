@@ -5,6 +5,15 @@
 # Colors for better readability
 BOLD="\033[1m"
 RESET="\033[0m"
+RED="\033[0;31m"
+GREEN="\033[0;32m"
+YELLOW="\033[1;33m"
+
+# Check if running in Windows and adjust color output
+if [ "$OS" = "Windows_NT" ]; then
+    # Enable virtual terminal processing for Windows
+    export TERM=xterm-256color
+fi
 
 # Function to prompt for required input
 prompt_required() {
@@ -152,6 +161,10 @@ if [ -n "$issues" ]; then
   echo "$issues" | tr ',' '\n' | while read -r issue; do
     issue=$(echo "$issue" | tr -d '[:space:]')
     if [ -n "$issue" ]; then
+      if ! validate_issue_number "${issue#\#}"; then
+        echo "${RED}Warning: Invalid issue number format: $issue${RESET}"
+        continue
+      fi
       # Make sure the issue has a # prefix
       case "$issue" in
         \#*) echo "Closes $issue" ;;
@@ -206,3 +219,14 @@ else
   echo "Commit aborted."
   exit 0
 fi
+
+validate_issue_number() {
+    local issue="$1"
+    # Remove '#' prefix if present
+    issue="${issue#\#}"
+    # Check if it's a valid number
+    case "$issue" in
+        ''|*[!0-9]*) return 1 ;;
+        *) return 0 ;;
+    esac
+}
