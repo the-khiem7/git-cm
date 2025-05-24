@@ -1,0 +1,10 @@
+# Default types
+feat:A new feature
+fix:A bug fix
+docs:Documentation only changes
+style:Changes that do not affect the meaning of the code
+refactor:Code change that neither fixes a bug nor adds a feature
+perf:Code change that improves performance
+test:Adding missing tests
+chore:Changes to build process or auxiliary tools
+ci:Changes to CI configuration

@@ -84,19 +84,35 @@ if [ "$staged_files" -eq 0 ]; then
   fi
 fi
 
+# Load custom commit types if config exists
+load_commit_types() {
+    local config_file=".git-cm-config"
+    if [ -f "$config_file" ]; then
+        # Read commit types from config
+        commit_types=$(cat "$config_file")
+    else
+        # Default commit types
+        commit_types="feat:A new feature
+fix:A bug fix
+docs:Documentation only changes
+style:Changes that do not affect code
+refactor:Code change neither fixing nor adding
+perf:Performance improvement
+test:Adding or fixing tests
+chore:Build process or tools
+ci:CI configuration changes"
+    fi
+}
+
+load_commit_types
+
 echo "=== Commit Message Builder ==="
 
 # 1. Select commit type
 echo "$BOLD""Select commit type:$RESET"
-echo "1) feat:     A new feature"
-echo "2) fix:      A bug fix"
-echo "3) docs:     Documentation only changes"
-echo "4) style:    Changes that do not affect the meaning of the code"
-echo "5) refactor: Code change that neither fixes a bug nor adds a feature"
-echo "6) perf:     Code change that improves performance"
-echo "7) test:     Adding missing tests or correcting existing tests"
-echo "8) chore:    Changes to the build process or auxiliary tools"
-echo "9) ci:       Changes to CI configuration files and scripts"
+echo "$commit_types" | tr '\n' '\0' | while IFS=: read -r type description; do
+  printf "%b" "$BOLD$type:$RESET $description\n"
+done
 
 commit_type=""
 while [ -z "$commit_type" ]; do
