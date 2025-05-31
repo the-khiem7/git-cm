@@ -246,3 +246,49 @@ validate_issue_number() {
         *) return 0 ;;
     esac
 }
+
+preview_in_editor() {
+    local message="$1"
+    local temp_file
+    temp_file=$(mktemp)
+    echo "$message" > "$temp_file"
+    
+    # Use git editor or fallback to vi
+    "${VISUAL:-${EDITOR:-vi}}" "$temp_file"
+    
+    # Read edited message
+    cat "$temp_file"
+    rm -f "$temp_file"
+}
+
+# Preview in editor
+commit_message="$commit_header"
+if [ -n "$description" ]; then
+  commit_message="$commit_message"$'\n'"$description"
+fi
+if [ -n "$breaking_change" ]; then
+  commit_message="$commit_message"$'\n'"BREAKING CHANGE: $breaking_change"
+fi
+if [ -n "$issues" ]; then
+  # Format each issue reference
+  echo "$issues" | tr ',' '\n' | while read -r issue; do
+    issue=$(echo "$issue" | tr -d '[:space:]')
+    if [ -n "$issue" ]; then
+      if ! validate_issue_number "${issue#\#}"; then
+        echo "${RED}Warning: Invalid issue number format: $issue${RESET}"
+        continue
+      fi
+      # Make sure the issue has a # prefix
+      case "$issue" in
+        \#*) commit_message="$commit_message"$'\n'"Closes $issue" ;;
+        *) commit_message="$commit_message"$'\n'"Closes #$issue" ;;
+      esac
+    fi
+  done
+fi
+
+# Ask user if they want to preview/edit the commit message
+if prompt_yesno "Would you like to preview/edit in your editor?"; then
+    final_message=$(preview_in_editor "$commit_message")
+    commit_cmd="git commit -m \"$final_message\""
+fi
