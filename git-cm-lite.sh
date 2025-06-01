@@ -109,28 +109,28 @@ load_commit_types
 echo "=== Commit Message Builder ==="
 
 # 1. Select commit type
-echo "$BOLD""Select commit type:$RESET"
-echo "$commit_types" | tr '\n' '\0' | while IFS=: read -r type description; do
-  printf "%b" "$BOLD$type:$RESET $description\n"
+echo "${BOLD}Select commit type:${RESET}"
+type_count=0
+# Store types and descriptions in arrays
+types=()
+descriptions=()
+echo "$commit_types" | while IFS=: read -r type description; do
+    type_count=$((type_count + 1))
+    types[$type_count]=$type
+    descriptions[$type_count]=$description
+    printf "%b" "${BOLD}$type_count)${RESET} $type: $description\n"
 done
 
 commit_type=""
 while [ -z "$commit_type" ]; do
-  printf "$BOLD""Enter type number (1-9):$RESET "
-  read -r type_number
-  
-  case "$type_number" in
-    1) commit_type="feat" ;;
-    2) commit_type="fix" ;;
-    3) commit_type="docs" ;;
-    4) commit_type="style" ;;
-    5) commit_type="refactor" ;;
-    6) commit_type="perf" ;;
-    7) commit_type="test" ;;
-    8) commit_type="chore" ;;
-    9) commit_type="ci" ;;
-    *) echo "Invalid choice. Please enter a number between 1 and 9." ;;
-  esac
+    printf "${BOLD}Enter type number (1-%d):${RESET} " "$type_count"
+    read -r type_number
+    
+    if [ "$type_number" -ge 1 ] && [ "$type_number" -le "$type_count" ]; then
+        commit_type="${types[$type_number]}"
+    else
+        echo "Invalid choice. Please enter a number between 1 and $type_count."
+    fi
 done
 
 # 2. Prompt for scope (optional)
