@@ -68,6 +68,33 @@ prompt_yesno() {
   done
 }
 
+# Function to validate issue numbers
+validate_issue_number() {
+    local issue="$1"
+    # Remove '#' prefix if present
+    issue="${issue#\#}"
+    # Check if it's a valid number
+    case "$issue" in
+        ''|*[!0-9]*) return 1 ;;
+        *) return 0 ;;
+    esac
+}
+
+# Function to preview commit message in editor
+preview_in_editor() {
+    local message="$1"
+    local temp_file
+    temp_file=$(mktemp)
+    echo "$message" > "$temp_file"
+    
+    # Use git editor or fallback to vi
+    "${VISUAL:-${EDITOR:-vi}}" "$temp_file"
+    
+    # Read edited message
+    cat "$temp_file"
+    rm -f "$temp_file"
+}
+
 # Check if we're in a git repository
 if ! git rev-parse --is-inside-work-tree > /dev/null 2>&1; then
   echo "Error: Not in a git repository."
@@ -235,31 +262,6 @@ else
   echo "Commit aborted."
   exit 0
 fi
-
-validate_issue_number() {
-    local issue="$1"
-    # Remove '#' prefix if present
-    issue="${issue#\#}"
-    # Check if it's a valid number
-    case "$issue" in
-        ''|*[!0-9]*) return 1 ;;
-        *) return 0 ;;
-    esac
-}
-
-preview_in_editor() {
-    local message="$1"
-    local temp_file
-    temp_file=$(mktemp)
-    echo "$message" > "$temp_file"
-    
-    # Use git editor or fallback to vi
-    "${VISUAL:-${EDITOR:-vi}}" "$temp_file"
-    
-    # Read edited message
-    cat "$temp_file"
-    rm -f "$temp_file"
-}
 
 # Preview in editor
 commit_message="$commit_header"
