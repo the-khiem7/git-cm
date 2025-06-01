@@ -222,56 +222,57 @@ commit_message=$(build_commit_message)
 echo "$commit_message"
 echo "----------------------------------------"
 
-# Confirm commit
-if prompt_yesno "Proceed with this commit?"; then
-  # Build the Git commit command with separate -m flags for header and body
-  commit_cmd="git commit -m \"$commit_header\""
-  
-  # Add description if provided
-  if [ -n "$description" ]; then
-    commit_cmd="$commit_cmd -m \"$description\""
-  fi
-  
-  # Add breaking change if provided
-  if [ -n "$breaking_change" ]; then
-    commit_cmd="$commit_cmd -m \"BREAKING CHANGE: $breaking_change\""
-  fi
-  
-  # Add issue references if provided
-  if [ -n "$issues" ]; then
-    issues_formatted=""
-    echo "$issues" | tr ',' '\n' | while read -r issue; do
-      issue=$(echo "$issue" | tr -d '[:space:]')
-      if [ -n "$issue" ]; then
-        # Make sure the issue has a # prefix
-        case "$issue" in
-          \#*) echo "Closes $issue" ;;
-          *) echo "Closes #$issue" ;;
-        esac
-      fi
-    done > /tmp/git-cm-issues
-    
-    issues_formatted=$(cat /tmp/git-cm-issues)
-    rm -f /tmp/git-cm-issues
-    
-    if [ -n "$issues_formatted" ]; then
-      commit_cmd="$commit_cmd -m \"$issues_formatted\""
-    fi
-  fi
-  
-  # Execute the commit command
-  eval "$commit_cmd"
-  echo "Commit successful!"
-else
-  echo "Commit aborted."
-  exit 0
-fi
-
-# Build and preview the commit message
-commit_message=$(build_commit_message)
-
 # Ask user if they want to preview/edit the commit message
 if prompt_yesno "Would you like to preview/edit in your editor?"; then
-    final_message=$(preview_in_editor "$commit_message")
-    commit_cmd="git commit -m \"$final_message\""
+    commit_message=$(preview_in_editor "$commit_message")
+fi
+
+# Confirm commit
+if prompt_yesno "Proceed with this commit?"; then
+    if [ -n "$commit_message" ]; then
+        # Use the complete message from preview/edit if it exists
+        git commit -m "$commit_message"
+    else
+        # Build the Git commit command with separate -m flags for header and body
+        commit_cmd="git commit -m \"$commit_header\""
+        
+        # Add description if provided
+        if [ -n "$description" ]; then
+            commit_cmd="$commit_cmd -m \"$description\""
+        fi
+        
+        # Add breaking change if provided
+        if [ -n "$breaking_change" ]; then
+            commit_cmd="$commit_cmd -m \"BREAKING CHANGE: $breaking_change\""
+        fi
+        
+        # Add issue references if provided
+        if [ -n "$issues" ]; then
+            issues_formatted=""
+            echo "$issues" | tr ',' '\n' | while read -r issue; do
+                issue=$(echo "$issue" | tr -d '[:space:]')
+                if [ -n "$issue" ]; then
+                    # Make sure the issue has a # prefix
+                    case "$issue" in
+                        \#*) echo "Closes $issue" ;;
+                        *) echo "Closes #$issue" ;;
+                    esac
+                fi
+            done > /tmp/git-cm-issues
+            
+            issues_formatted=$(cat /tmp/git-cm-issues)
+            rm -f /tmp/git-cm-issues
+            
+            if [ -n "$issues_formatted" ]; then
+                commit_cmd="$commit_cmd -m \"$issues_formatted\""
+            fi
+        fi
+        
+        # Execute the commit command
+        eval "$commit_cmd"
+    fi
+    echo "${GREEN}Commit successful!${RESET}"
+else
+    echo "${YELLOW}Commit aborted.${RESET}"
+    exit 0
 fi
