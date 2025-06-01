@@ -95,6 +95,35 @@ preview_in_editor() {
     rm -f "$temp_file"
 }
 
+# Function to build commit message
+build_commit_message() {
+    local message="$commit_header"
+    if [ -n "$description" ]; then
+        message="$message"$'\n'"$description"
+    fi
+    if [ -n "$breaking_change" ]; then
+        message="$message"$'\n'"BREAKING CHANGE: $breaking_change"
+    fi
+    if [ -n "$issues" ]; then
+        # Format each issue reference
+        echo "$issues" | tr ',' '\n' | while read -r issue; do
+            issue=$(echo "$issue" | tr -d '[:space:]')
+            if [ -n "$issue" ]; then
+                if ! validate_issue_number "${issue#\#}"; then
+                    echo "${RED}Warning: Invalid issue number format: $issue${RESET}" >&2
+                    continue
+                fi
+                # Make sure the issue has a # prefix
+                case "$issue" in
+                    \#*) message="$message"$'\n'"Closes $issue" ;;
+                    *) message="$message"$'\n'"Closes #$issue" ;;
+                esac
+            fi
+        done
+    fi
+    echo "$message"
+}
+
 # Check if we're in a git repository
 if ! git rev-parse --is-inside-work-tree > /dev/null 2>&1; then
   echo "Error: Not in a git repository."
@@ -189,33 +218,8 @@ fi
 # Display the final commit message
 echo "$BOLD""Final commit message:$RESET"
 echo "----------------------------------------"
-echo "$commit_header"
-if [ -n "$description" ]; then
-  echo ""
-  echo "$description"
-fi
-if [ -n "$breaking_change" ]; then
-  echo ""
-  echo "BREAKING CHANGE: $breaking_change"
-fi
-if [ -n "$issues" ]; then
-  echo ""
-  # Format each issue reference
-  echo "$issues" | tr ',' '\n' | while read -r issue; do
-    issue=$(echo "$issue" | tr -d '[:space:]')
-    if [ -n "$issue" ]; then
-      if ! validate_issue_number "${issue#\#}"; then
-        echo "${RED}Warning: Invalid issue number format: $issue${RESET}"
-        continue
-      fi
-      # Make sure the issue has a # prefix
-      case "$issue" in
-        \#*) echo "Closes $issue" ;;
-        *) echo "Closes #$issue" ;;
-      esac
-    fi
-  done
-fi
+commit_message=$(build_commit_message)
+echo "$commit_message"
 echo "----------------------------------------"
 
 # Confirm commit
@@ -263,31 +267,8 @@ else
   exit 0
 fi
 
-# Preview in editor
-commit_message="$commit_header"
-if [ -n "$description" ]; then
-  commit_message="$commit_message"$'\n'"$description"
-fi
-if [ -n "$breaking_change" ]; then
-  commit_message="$commit_message"$'\n'"BREAKING CHANGE: $breaking_change"
-fi
-if [ -n "$issues" ]; then
-  # Format each issue reference
-  echo "$issues" | tr ',' '\n' | while read -r issue; do
-    issue=$(echo "$issue" | tr -d '[:space:]')
-    if [ -n "$issue" ]; then
-      if ! validate_issue_number "${issue#\#}"; then
-        echo "${RED}Warning: Invalid issue number format: $issue${RESET}"
-        continue
-      fi
-      # Make sure the issue has a # prefix
-      case "$issue" in
-        \#*) commit_message="$commit_message"$'\n'"Closes $issue" ;;
-        *) commit_message="$commit_message"$'\n'"Closes #$issue" ;;
-      esac
-    fi
-  done
-fi
+# Build and preview the commit message
+commit_message=$(build_commit_message)
 
 # Ask user if they want to preview/edit the commit message
 if prompt_yesno "Would you like to preview/edit in your editor?"; then
