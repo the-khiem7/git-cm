@@ -7,13 +7,17 @@ A lightweight, dependency-free implementation of Commitizen-like interactive com
 - Interactive conventional commit message creation
 - No external dependencies, works with built-in Git and shell tools
 - Cross-platform (Windows, macOS, Linux)
-- Supports conventional commit format with:
+- Fully customizable commit types via `.git-cm-config`
+- Smart commit message creation:
   - Type selection (feat, fix, docs, etc.)
-  - Optional scope
+  - Optional scope (e.g., auth, ui)
   - Required summary
   - Optional multiline description
   - Breaking change handling
-  - Issue references
+  - Issue references with validation
+  - Preview and edit support using your preferred editor
+- Uses your configured Git editor for message editing
+- Validates staged changes before committing
 
 ## Setup
 
@@ -47,7 +51,31 @@ After setup, simply run:
 git cm
 ```
 
-Follow the interactive prompts to create a properly formatted commit message.
+The script will:
+
+1. Check if there are staged changes
+2. Guide you through creating your commit message:
+   - Select a commit type from the list
+   - Optionally add a scope
+   - Enter a short summary
+   - Optionally add a detailed description
+   - Indicate if there are breaking changes
+   - Reference related issues
+3. Show you the complete commit message
+4. Allow you to preview and edit the message in your preferred editor
+5. Confirm and create the commit
+
+The editor used for preview/edit is determined by your Git configuration:
+- First checks `$VISUAL`
+- Then `$EDITOR`
+- Falls back to `vi` if neither is set
+
+You can configure your preferred editor in Git:
+```bash
+git config --global core.editor "code --wait"  # For VS Code
+git config --global core.editor "nano"         # For nano
+git config --global core.editor "vim"          # For vim
+```
 
 ## Manual Setup
 
@@ -80,135 +108,40 @@ git config --global alias.cm "!sh \"C:/path/to/git-cm-lite.sh\""
 
 Make sure the script remains accessible at the specified path.
 
-## 📚 README: Commitizen Lite for Git via Bash
+## Configuration
 
-### 🚀 Overview
+### Commit Types
 
-This is a lightweight, **Commitizen-like CLI tool** designed to help automate standardized commit messages in any Git repository. It's entirely written in **Bash**, requiring no Node.js or external dependencies. Use this tool for a simple, consistent commit process, even if you're using a non-Node.js tech stack.
+You can customize the available commit types by creating a `.git-cm-config` file in your repository root. The format is:
 
----
-
-### 🛠️ Features
-
-- **Type** your commit (e.g., `feat`, `fix`, `docs`).
-- Optionally add a **scope** (e.g., `auth`, `api`).
-- Provide a **short description** for the commit.
-- Add an optional **long description** (multi-line).
-- Specify if your commit includes **breaking changes**.
-- Link issues that are **closed** by the commit (e.g., `#123`).
-- Fully POSIX-compliant, **works on Linux/macOS** with no external dependencies.
-
----
-
-### 🧰 Setup
-
-#### 1. Clone the repository (or navigate to your existing project):
-```bash
-git clone <repo-url>
-cd <your-repo>
+```
+type:Description of the type
 ```
 
-#### 2. Set up the Git alias to use the `git-cm-lite.sh` script:
-Run the setup script to automatically configure the alias in your Git repo.
-
-```bash
-sh .git-cm-setup.sh
+For example:
+```
+feat:A new feature
+fix:A bug fix
+docs:Documentation only changes
+style:Changes that do not affect the meaning of the code
+refactor:Code change that neither fixes a bug nor adds a feature
+perf:Code change that improves performance
+test:Adding missing tests
+chore:Changes to build process or auxiliary tools
+ci:Changes to CI configuration
 ```
 
-This will add the following Git alias to your repository:
-```bash
-git config alias.cm '!sh ./git-cm-lite.sh'
-```
+If no config file is found, the script will use these default types.
 
----
-
-### 🚀 Usage
-
-#### 1. **Stage your changes**:
-```bash
-git add .
-```
-
-#### 2. **Run `git cm`** to trigger the interactive commit process:
-```bash
-git cm
-```
-
-You'll be prompted to:
-- Choose a commit **type** (e.g., `feat`, `fix`).
-- Optionally provide a **scope** (e.g., `auth`, `login`).
-- Enter a **short description** (required).
-- Optionally provide a **long description** (multi-line).
-- Specify if there are **breaking changes**.
-- Optionally link **issue numbers** (e.g., `#123, #456`).
-
-The resulting commit message will follow the **conventional commit format**:
-```bash
-<type>(<scope>): <short description>
-<long description>
-BREAKING CHANGE: <description>
-Closes <issue #>
-```
-
-Example output:
-```bash
-feat(auth): add token validation
-
-Added JWT parsing and validation for user authentication.
-
-BREAKING CHANGE: The token format has changed.
-
-Closes #123
-```
-
----
-
-### ⚙️ Scripts
-
-#### **`git-cm-lite.sh`**
-The main Bash script that runs the commit flow. It will:
-- Prompt the user for necessary commit details.
-- Format the commit message according to the **Conventional Commits** standard.
-- Run `git commit` with multiple `-m` options for proper formatting.
-
-#### **`.git-cm-setup.sh`**
-This script configures the Git alias to easily run `git cm` in your repository:
-```bash
-git config alias.cm '!sh ./git-cm-lite.sh'
-```
-
----
-
-### ⚠️ Notes
-
-- This solution is **cross-platform** and should work on Linux/macOS.
-- **No Node.js** or additional tools are required to run this script.
-- Ensure that you are using **Git Bash** or **Windows Subsystem for Linux (WSL)** for full compatibility on Windows.
-- For PowerShell on Windows, you can use the `bash` command to run the script (e.g., `bash ./git-cm-lite.sh`).
-
----
-
-### 🎉 Contributions
+## Contributing
 
 Feel free to contribute to this project by:
-- Suggesting features.
-- Reporting bugs.
-- Improving the code.
+- Suggesting features
+- Reporting bugs
+- Improving the code
 
-To contribute, please fork the repo, make changes, and submit a pull request.
-
----
-
-### 📄 License
-
-This project is licensed under the MIT License – see the [LICENSE](LICENSE) file for details.
-
----
-
-### 💬 Contact
-
-For any questions or feature requests, feel free to open an issue or contact the project maintainers.
-
----
-
-This README should cover all the essential setup, usage, and structure for your **Commitizen-like** tool. You can add it to your project and get users up and running quickly!
+To contribute:
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Submit a pull request
